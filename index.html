@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Lato', sans-serif; background: var(--color-background-tertiary); min-height: 100vh; color: var(--color-text-primary); }
+  .app { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .header { text-align: center; margin-bottom: 2rem; padding: 2rem 1rem 1.5rem; background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3B6D11, #639922, #BA7517, #3B6D11); }
+  .brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+  .brand-icon { font-size: 32px; }
+  .brand-name { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: #3B6D11; letter-spacing: -0.5px; }
+  .brand-name span { color: #BA7517; }
+  .header-sub { font-size: 13px; color: var(--color-text-secondary); font-weight: 300; letter-spacing: 0.3px; }
+  .prompt-section { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1.25rem; margin-bottom: 1.25rem; }
+  .prompt-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #3B6D11; margin-bottom: 10px; display: block; }
+  .chips-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chip { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 400; cursor: pointer; border: 1px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-secondary); transition: all 0.15s; user-select: none; }
+  .chip:hover { background: #EAF3DE; color: #3B6D11; border-color: #97C459; }
+  .chip.active { background: #EAF3DE; color: #3B6D11; border-color: #639922; font-weight: 700; }
+  .input-row { display: flex; gap: 8px; }
+  .text-input { flex: 1; padding: 9px 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); font-size: 14px; font-family: 'Lato', sans-serif; outline: none; }
+  .text-input:focus { border-color: #639922; }
+  .text-input::placeholder { color: var(--color-text-tertiary); }
+  .btn-generar { padding: 9px 20px; border-radius: var(--border-radius-md); border: none; background: #3B6D11; color: white; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; transition: background 0.15s; white-space: nowrap; }
+  .btn-generar:hover { background: #27500A; }
+  .btn-generar:disabled { background: var(--color-background-tertiary); color: var(--color-text-tertiary); cursor: not-allowed; }
+  .loading-card { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 2.5rem; text-align: center; display: none; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #EAF3DE; border-top-color: #3B6D11; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-card p { font-size: 14px; color: var(--color-text-secondary); }
+  .recipe-card { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1.5rem; display: none; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .recipe-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; background: #EAF3DE; color: #3B6D11; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .recipe-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; color: var(--color-text-primary); line-height: 1.2; }
+  .recipe-desc { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .recipe-meta { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+  .meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--color-text-tertiary); font-weight: 700; }
+  .meta-value { font-size: 14px; font-weight: 400; color: var(--color-text-primary); }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #3B6D11; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #EAF3DE; }
+  .ingredients-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 1.25rem; }
+  .ingredient-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--color-text-primary); line-height: 1.4; }
+  .ingredient-dot { width: 6px; height: 6px; border-radius: 50%; background: #639922; margin-top: 5px; flex-shrink: 0; }
+  .steps-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem; }
+  .step-item { display: flex; gap: 12px; align-items: flex-start; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: #EAF3DE; color: #3B6D11; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-text { font-size: 13px; color: var(--color-text-primary); line-height: 1.55; padding-top: 3px; }
+  .tip-box { background: #EAF3DE; border-left: 3px solid #639922; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 10px 14px; font-size: 13px; color: #27500A; line-height: 1.5; margin-bottom: 1.25rem; }
+  .tip-box strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 3px; color: #3B6D11; }
+  .btn-otra { width: 100%; padding: 11px; border-radius: var(--border-radius-md); border: 1px solid #97C459; background: transparent; color: #3B6D11; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; transition: all 0.15s; }
+  .btn-otra:hover { background: #EAF3DE; }
+
+  .favorites-section { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1.25rem; margin-bottom: 1.25rem; display: none; }
+  .fav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .fav-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #BA7517; }
+  .fav-list { display: flex; flex-direction: column; gap: 8px; }
+  .fav-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: var(--border-radius-md); background: var(--color-background-secondary); font-size: 13px; cursor: pointer; border: 0.5px solid var(--color-border-tertiary); transition: background 0.15s; }
+  .fav-item:hover { background: #EAF3DE; }
+  .fav-item-name { font-weight: 400; color: var(--color-text-primary); }
+  .fav-item-badge { font-size: 11px; color: var(--color-text-tertiary); }
+  .fav-remove { font-size: 16px; color: var(--color-text-tertiary); cursor: pointer; padding: 0 4px; }
+  .fav-remove:hover { color: #E24B4A; }
+
+  .actions-row { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .btn-action { flex: 1; padding: 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }
+  .btn-action:hover { background: #EAF3DE; color: #3B6D11; border-color: #97C459; }
+  .btn-action.fav-active { background: #FAEEDA; color: #BA7517; border-color: #EF9F27; }
+
+  .shopping-modal { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1.25rem; margin-bottom: 1.25rem; display: none; animation: fadeIn 0.3s ease; }
+  .shopping-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #3B6D11; margin-bottom: 12px; }
+  .shopping-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .shopping-item { display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; padding: 4px 0; }
+  .shopping-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #97C459; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+  .shopping-check.checked { background: #639922; border-color: #639922; }
+  .shopping-check.checked::after { content: '✓'; color: white; font-size: 10px; font-weight: 700; }
+  .shopping-item-text { color: var(--color-text-primary); }
+  .shopping-item-text.checked { text-decoration: line-through; color: var(--color-text-tertiary); }
+  .btn-close-shopping { width: 100%; padding: 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); font-size: 12px; cursor: pointer; font-family: 'Lato', sans-serif; }
+
+  .error-card { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-danger); padding: 1.25rem; color: var(--color-text-danger); font-size: 13px; display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <span class="brand-icon">🍳</span>
+      <div class="brand-name">Cooking <span>IA</span></div>
+    </div>
+    <p class="header-sub">Recetas con IA para acompañar con el mate 🧉</p>
+  </div>
+
+  <div class="favorites-section" id="favSection">
+    <div class="fav-header">
+      <span class="fav-title">⭐ Favoritas</span>
+    </div>
+    <div class="fav-list" id="favList"></div>
+  </div>
+
+  <div class="prompt-section">
+    <span class="prompt-label">¿Qué tenés ganas?</span>
+    <div class="chips-row" id="chips">
+      <div class="chip" data-val="dulce">Dulce</div>
+      <div class="chip" data-val="salado">Salado</div>
+      <div class="chip" data-val="rápido">Rápido (menos de 30 min)</div>
+      <div class="chip" data-val="sin horno">Sin horno</div>
+      <div class="chip" data-val="económico">Económico</div>
+      <div class="chip" data-val="para varios">Para varios</div>
+    </div>
+    <div class="input-row">
+      <input class="text-input" id="extraInput" placeholder="Ej: tengo harina y queso, sin gluten..." />
+      <button class="btn-generar" id="btnGenerar" onclick="generarReceta()">Generar ✦</button>
+    </div>
+  </div>
+
+  <div class="loading-card" id="loadingCard">
+    <div class="spinner"></div>
+    <p>Cooking IA está preparando tu receta...</p>
+  </div>
+
+  <div class="shopping-modal" id="shoppingModal">
+    <div class="shopping-title">🛒 Lista de compras</div>
+    <div class="shopping-list" id="shoppingList"></div>
+    <button class="btn-close-shopping" onclick="toggleShopping()">Cerrar lista</button>
+  </div>
+
+  <div class="recipe-card" id="recipeCard">
+    <div class="recipe-badge" id="recipeBadge">🧉 Para el mate</div>
+    <div class="recipe-title" id="recipeTitle">...</div>
+    <div class="recipe-desc" id="recipeDesc">...</div>
+    <div class="recipe-meta" id="recipeMeta"></div>
+    <div class="actions-row">
+      <button class="btn-action" id="btnFav" onclick="toggleFavorite()">⭐ Guardar</button>
+      <button class="btn-action" id="btnShopping" onclick="toggleShopping()">🛒 Lista</button>
+    </div>
+    <div class="section-title">Ingredientes</div>
+    <div class="ingredients-grid" id="recipeIngredients"></div>
+    <div class="section-title">Preparación</div>
+    <div class="steps-list" id="recipeSteps"></div>
+    <div class="tip-box" id="recipeTip" style="display:none">
+      <strong>Consejo para llevar</strong>
+      <span id="recipeTipText"></span>
+    </div>
+    <button class="btn-otra" onclick="generarReceta()">Generar otra receta ↺</button>
+  </div>
+
+  <div class="error-card" id="errorCard">
+    <strong>Algo salió mal</strong><br>
+    <span id="errorMsg">No se pudo conectar. Intentá de nuevo.</span>
+  </div>
+
+</div>
+
+<script>
+  let currentRecipe = null;
+  let favorites = [];
+  let shoppingOpen = false;
+
+  const chips = document.querySelectorAll('.chip');
+  chips.forEach(c => c.addEventListener('click', () => c.classList.toggle('active')));
+
+  function getSelectedChips() {
+    return [...document.querySelectorAll('.chip.active')].map(c => c.dataset.val).join(', ');
+  }
+
+  function show(id) {
+    ['loadingCard','recipeCard','errorCard'].forEach(x => {
+      document.getElementById(x).style.display = x === id ? 'block' : 'none';
+    });
+    document.getElementById('shoppingModal').style.display = 'none';
+    shoppingOpen = false;
+  }
+
+  function toggleFavorite() {
+    if (!currentRecipe) return;
+    const btn = document.getElementById('btnFav');
+    const idx = favorites.findIndex(f => f.titulo === currentRecipe.titulo);
+    if (idx >= 0) {
+      favorites.splice(idx, 1);
+      btn.classList.remove('fav-active');
+      btn.textContent = '⭐ Guardar';
+    } else {
+      favorites.push({ ...currentRecipe });
+      btn.classList.add('fav-active');
+      btn.textContent = '⭐ Guardada';
+    }
+    renderFavorites();
+  }
+
+  function renderFavorites() {
+    const section = document.getElementById('favSection');
+    const list = document.getElementById('favList');
+    if (favorites.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = favorites.map((f, i) => `
+      <div class="fav-item" onclick="loadFavorite(${i})">
+        <span class="fav-item-name">${f.titulo}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="fav-item-badge">${f.tiempo}</span>
+          <span class="fav-remove" onclick="event.stopPropagation();removeFav(${i})">×</span>
+        </div>
+      </div>`).join('');
+  }
+
+  function removeFav(i) {
+    favorites.splice(i, 1);
+    renderFavorites();
+    if (currentRecipe) {
+      const btn = document.getElementById('btnFav');
+      const stillFav = favorites.some(f => f.titulo === currentRecipe.titulo);
+      btn.classList.toggle('fav-active', stillFav);
+      btn.textContent = stillFav ? '⭐ Guardada' : '⭐ Guardar';
+    }
+  }
+
+  function loadFavorite(i) {
+    currentRecipe = favorites[i];
+    renderRecipe(currentRecipe);
+    show('recipeCard');
+    const btn = document.getElementById('btnFav');
+    btn.classList.add('fav-active');
+    btn.textContent = '⭐ Guardada';
+  }
+
+  function toggleShopping() {
+    if (!currentRecipe) return;
+    const modal = document.getElementById('shoppingModal');
+    shoppingOpen = !shoppingOpen;
+    if (shoppingOpen) {
+      const list = document.getElementById('shoppingList');
+      list.innerHTML = currentRecipe.ingredientes.map((ing, i) => `
+        <div class="shopping-item" onclick="toggleCheck(${i})">
+          <div class="shopping-check" id="chk-${i}"></div>
+          <span class="shopping-item-text" id="cht-${i}">${ing}</span>
+        </div>`).join('');
+      modal.style.display = 'block';
+    } else {
+      modal.style.display = 'none';
+    }
+  }
+
+  function toggleCheck(i) {
+    const chk = document.getElementById('chk-'+i);
+    const txt = document.getElementById('cht-'+i);
+    chk.classList.toggle('checked');
+    txt.classList.toggle('checked');
+  }
+
+  function renderRecipe(recipe) {
+    document.getElementById('recipeTitle').textContent = recipe.titulo;
+    document.getElementById('recipeDesc').textContent = recipe.descripcion;
+    const meta = document.getElementById('recipeMeta');
+    meta.innerHTML = [
+      { label: 'Tiempo', val: recipe.tiempo },
+      { label: 'Porciones', val: recipe.porciones },
+      { label: 'Dificultad', val: recipe.dificultad }
+    ].map(m => `<div class="meta-item"><span class="meta-label">${m.label}</span><span class="meta-value">${m.val}</span></div>`).join('');
+    const ingGrid = document.getElementById('recipeIngredients');
+    ingGrid.innerHTML = recipe.ingredientes.map(i =>
+      `<div class="ingredient-item"><span class="ingredient-dot"></span><span>${i}</span></div>`).join('');
+    const stepsList = document.getElementById('recipeSteps');
+    stepsList.innerHTML = recipe.pasos.map((p, idx) =>
+      `<div class="step-item"><div class="step-num">${idx+1}</div><div class="step-text">${p}</div></div>`).join('');
+    if (recipe.consejo) {
+      document.getElementById('recipeTipText').textContent = recipe.consejo;
+      document.getElementById('recipeTip').style.display = 'block';
+    } else {
+      document.getElementById('recipeTip').style.display = 'none';
+    }
+    const badge = document.getElementById('recipeBadge');
+    const esDulce = recipe.titulo.toLowerCase().match(/bizcocho|torta|alfajor|galletita|medialuna|facturas|brownie|muffin|budín|dulce|cookie/);
+    badge.textContent = esDulce ? '🍪 Dulce para el mate' : '🧀 Para llevar al cole';
+  }
+
+  async function generarReceta() {
+    const filtros = getSelectedChips();
+    const extra = document.getElementById('extraInput').value.trim();
+    const btn = document.getElementById('btnGenerar');
+
+    let prompt = `Generá una receta para acompañar el mate que sea ideal para llevar a la escuela.`;
+    if (filtros) prompt += ` Preferencias: ${filtros}.`;
+    if (extra) prompt += ` Información extra: ${extra}.`;
+    prompt += `\nRespondé SOLO con un objeto JSON válido (sin markdown, sin comillas extras), con esta estructura exacta:\n{"titulo":"...","descripcion":"...","tiempo":"...","porciones":"...","dificultad":"...","ingredientes":["..."],"pasos":["..."],"consejo":"..."}`;
+
+    btn.disabled = true;
+    show('loadingCard');
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content.map(i => i.text || "").join("");
+      const clean = text.replace(/```json|```/g, "").trim();
+      const recipe = JSON.parse(clean);
+      currentRecipe = recipe;
+
+      renderRecipe(recipe);
+
+      const isFav = favorites.some(f => f.titulo === recipe.titulo);
+      const favBtn = document.getElementById('btnFav');
+      favBtn.classList.toggle('fav-active', isFav);
+      favBtn.textContent = isFav ? '⭐ Guardada' : '⭐ Guardar';
+
+      show('recipeCard');
+    } catch(e) {
+      document.getElementById('errorMsg').textContent = e.message || 'Error desconocido. Intentá de nuevo.';
+      show('errorCard');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
