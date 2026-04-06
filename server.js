@@ -7,8 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const API_KEY = "PONÉ_TU_API_KEY_ACÁ";
-
+const API_KEY = process.env.API_KEY;
 app.post("/receta", async (req, res) => {
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
