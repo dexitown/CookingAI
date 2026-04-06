@@ -3,11 +3,15 @@ import fetch from "node-fetch";
 import cors from "cors";
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
 const API_KEY = process.env.API_KEY;
+
+app.get("/", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.post("/receta", async (req, res) => {
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -18,7 +22,7 @@ app.post("/receta", async (req, res) => {
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5",
         max_tokens: 1000,
         messages: [
           {
@@ -28,16 +32,14 @@ app.post("/receta", async (req, res) => {
         ]
       })
     });
-
     const data = await response.json();
     res.json(data);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
-app.listen(3000, () => {
-  console.log("🚀 http://localhost:3000");
+app.listen(process.env.PORT || 3000, () => {
+  console.log("🚀 Servidor iniciado");
 });
